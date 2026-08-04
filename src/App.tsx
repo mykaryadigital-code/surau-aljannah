@@ -33,16 +33,23 @@ export default function App() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        parsed.name = defaultSurauInfo.name;
-        parsed.locationName = defaultSurauInfo.locationName;
-        parsed.address = defaultSurauInfo.address;
-        if (!parsed.registrationNo || parsed.registrationNo.includes('JHEAINS/P/SAB')) {
-          parsed.registrationNo = defaultSurauInfo.registrationNo;
-        }
-        if (!parsed.setiausahaName) {
-          parsed.setiausahaName = parsed.pemeriksaKira1 || 'Encik Azman bin Kassim';
-        }
-        return parsed;
+        const pengerusi = (!parsed.pengerusiName || parsed.pengerusiName === 'Haji Ahmad bin Mohd') 
+          ? defaultSurauInfo.pengerusiName 
+          : parsed.pengerusiName;
+        const bendahari = (!parsed.bendahariName || parsed.bendahariName === 'Encik Razali bin Harun') 
+          ? defaultSurauInfo.bendahariName 
+          : parsed.bendahariName;
+        const setiausaha = (!parsed.setiausahaName || parsed.setiausahaName === 'Encik Azman bin Kassim') 
+          ? defaultSurauInfo.setiausahaName 
+          : parsed.setiausahaName;
+
+        return {
+          ...defaultSurauInfo,
+          ...parsed,
+          pengerusiName: pengerusi,
+          bendahariName: bendahari,
+          setiausahaName: setiausaha,
+        };
       } catch (e) {
         console.error('Failed to parse saved surau info:', e);
       }

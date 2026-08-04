@@ -274,41 +274,41 @@ export const MonthlyReportView: React.FC<MonthlyReportViewProps> = ({
         {/* Section 4: AJK Signatures Block */}
         <div className="pt-8 border-t-2 border-slate-800 space-y-6">
           <p className="text-xs text-slate-600 italic">
-            Disediakan dan disahkan untuk dibentangkan dalam Mesyuarat Ahli Jawatankuasa (AJK) Surau Al Jannah:
+            Disediakan dan disahkan untuk dibentangkan dalam Mesyuarat Ahli Jawatankuasa (AJK) {surauInfo.name}:
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center text-xs pt-2">
             {/* Bendahari */}
-            <div className="flex flex-col items-center">
-              <div className="h-14 w-full max-w-[200px]" />
+            <div className="flex flex-col items-center p-3 sm:p-0 bg-slate-50/70 sm:bg-transparent rounded-xl border border-slate-200 sm:border-0">
+              <div className="h-10 sm:h-14 w-full max-w-[200px]" />
               <div className="w-full max-w-[200px] border-b border-slate-800 mb-2" />
-              <p className="font-bold text-slate-900 text-xs">
-                {surauInfo.bendahariName}
+              <p className="font-bold text-slate-900 text-xs sm:text-xs">
+                {surauInfo.bendahariName || 'BENDAHARI'}
               </p>
               <p className="font-bold text-slate-800 text-[11px] mt-0.5">BENDAHARI</p>
-              <p className="text-[10px] text-slate-500">Surau Al Jannah</p>
+              <p className="text-[10px] text-slate-500">{surauInfo.name}</p>
             </div>
 
             {/* Setiausaha */}
-            <div className="flex flex-col items-center">
-              <div className="h-14 w-full max-w-[200px]" />
+            <div className="flex flex-col items-center p-3 sm:p-0 bg-slate-50/70 sm:bg-transparent rounded-xl border border-slate-200 sm:border-0">
+              <div className="h-10 sm:h-14 w-full max-w-[200px]" />
               <div className="w-full max-w-[200px] border-b border-slate-800 mb-2" />
-              <p className="font-bold text-slate-900 text-xs">
-                {surauInfo.setiausahaName || 'Encik Azman bin Kassim'}
+              <p className="font-bold text-slate-900 text-xs sm:text-xs">
+                {surauInfo.setiausahaName || 'SETIAUSAHA'}
               </p>
               <p className="font-bold text-slate-800 text-[11px] mt-0.5">SETIAUSAHA</p>
-              <p className="text-[10px] text-slate-500">Surau Al Jannah</p>
+              <p className="text-[10px] text-slate-500">{surauInfo.name}</p>
             </div>
 
             {/* Pengerusi */}
-            <div className="flex flex-col items-center">
-              <div className="h-14 w-full max-w-[200px]" />
+            <div className="flex flex-col items-center p-3 sm:p-0 bg-slate-50/70 sm:bg-transparent rounded-xl border border-slate-200 sm:border-0">
+              <div className="h-10 sm:h-14 w-full max-w-[200px]" />
               <div className="w-full max-w-[200px] border-b border-slate-800 mb-2" />
-              <p className="font-bold text-slate-900 text-xs">
-                {surauInfo.pengerusiName}
+              <p className="font-bold text-slate-900 text-xs sm:text-xs">
+                {surauInfo.pengerusiName || 'PENGERUSI'}
               </p>
               <p className="font-bold text-slate-800 text-[11px] mt-0.5">PENGERUSI</p>
-              <p className="text-[10px] text-slate-500">Surau Al Jannah</p>
+              <p className="text-[10px] text-slate-500">{surauInfo.name}</p>
             </div>
           </div>
         </div>

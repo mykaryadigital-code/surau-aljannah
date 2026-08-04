@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SurauInfo } from '../types';
 import { X, Building2, Save, RefreshCw, Landmark, Phone, Mail, User, Shield } from 'lucide-react';
 
@@ -16,6 +16,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onSaveSurauInfo,
 }) => {
   const [formData, setFormData] = useState<SurauInfo>(surauInfo);
+
+  useEffect(() => {
+    if (isOpen) {
+      setFormData(surauInfo);
+    }
+  }, [surauInfo, isOpen]);
 
   if (!isOpen) return null;
 
