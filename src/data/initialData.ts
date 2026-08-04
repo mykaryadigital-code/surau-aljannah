@@ -1,0 +1,19 @@
+import { SurauInfo, Transaction } from '../types';
+
+export const defaultSurauInfo: SurauInfo = {
+  name: 'SURAU AL-JANNAH',
+  locationName: 'Kg.Padang Pulasan, Papar',
+  address: '116B, Jalan Bambangan, 89600 Papar, Sabah',
+  registrationNo: 'JHEAINS:BPWD: 200-2/1/03/49',
+  bankName: 'Agro Bank',
+  accountNo: '1007 4810 0002 3813',
+  pengerusiName: 'Haji Ahmad bin Mohd',
+  bendahariName: 'Encik Razali bin Harun',
+  setiausahaName: 'Encik Azman bin Kassim',
+  phone: '019-896 4810',
+  email: 'kewangan@suraualjannah-pulasan3.org.my',
+  bakiTerdahulu: 0.00,
+};
+
+export const initialTransactions: Transaction[] = [];
+

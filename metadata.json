@@ -1,0 +1,6 @@
+{
+  "name": "Akaun Surau Al Jannah",
+  "description": "Sistem Pengurusan Kewangan Digital Surau Al Jannah - Transaksi Infaq/Perbelanjaan, Bukti Audit, Resit Rasmi dan Laporan Bulanan AJK.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
