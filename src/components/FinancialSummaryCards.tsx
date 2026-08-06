@@ -8,10 +8,9 @@ import {
   CheckCircle2, 
   AlertTriangle, 
   XCircle,
-  PiggyBank,
-  HeartHandshake,
-  Wrench,
-  Sparkles
+  Landmark,
+  Banknote,
+  Coins
 } from 'lucide-react';
 
 interface FinancialSummaryCardsProps {
@@ -25,30 +24,6 @@ export const FinancialSummaryCards: React.FC<FinancialSummaryCardsProps> = ({
   transactions,
   onOpenAddModal,
 }) => {
-  // Calculate breakdown per FundCategory
-  const fundTotals = React.useMemo(() => {
-    const map: Record<string, { in: number; out: number }> = {
-      'Tabung Am / Pengurusan': { in: 0, out: 0 },
-      'Tabung Wakaf': { in: 0, out: 0 },
-      'Tabung Kebajikan & Bantuan': { in: 0, out: 0 },
-      'Tabung Pembangunan & Pembaikan': { in: 0, out: 0 },
-      'Tabung Imarah & Aktiviti': { in: 0, out: 0 },
-    };
-
-    transactions.forEach((t) => {
-      if (!map[t.fundCategory]) {
-        map[t.fundCategory] = { in: 0, out: 0 };
-      }
-      if (t.type === 'IN') {
-        map[t.fundCategory].in += t.amount;
-      } else {
-        map[t.fundCategory].out += t.amount;
-      }
-    });
-
-    return map;
-  }, [transactions]);
-
   // Determine indicator style
   const getStatusBadge = () => {
     switch (summary.healthStatus) {
@@ -109,7 +84,7 @@ export const FinancialSummaryCards: React.FC<FinancialSummaryCardsProps> = ({
 
       {/* Main 3 Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {/* Card 1: BAKI SEMASA */}
+        {/* Card 1: BAKI SEMASA KESELURUHAN */}
         <div className="relative bg-gradient-to-br from-emerald-900 to-teal-950 text-white rounded-2xl p-6 shadow-xl border border-emerald-800/80 overflow-hidden flex flex-col justify-between">
           <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
           <div>
@@ -119,11 +94,11 @@ export const FinancialSummaryCards: React.FC<FinancialSummaryCardsProps> = ({
                   <Wallet className="w-5 h-5 text-amber-400" />
                 </div>
                 <span className="text-xs font-semibold text-emerald-200 uppercase tracking-wider">
-                  Baki Semasa Real-Time
+                  Baki Semasa Keseluruhan
                 </span>
               </div>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-800 text-emerald-200 border border-emerald-700">
-                Akaun Surau
+                Bank + Peti Cash
               </span>
             </div>
 
@@ -213,6 +188,85 @@ export const FinancialSummaryCards: React.FC<FinancialSummaryCardsProps> = ({
                 {summary.netSurplus >= 0 ? '+' : ''}{formatRM(summary.netSurplus)}
               </span>
             </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Account & Cash Split Cards Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+        {/* Akaun Bank Card */}
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 text-white rounded-2xl p-5 shadow-md border border-slate-700 flex flex-col justify-between relative overflow-hidden">
+          <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2.5 rounded-xl bg-emerald-900/80 text-emerald-400 border border-emerald-700/50">
+                <Landmark className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-white flex items-center gap-1.5">
+                  Duit Dalam Akaun Bank
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-800/80 text-emerald-200 text-[10px] font-mono">Agro Bank</span>
+                </h4>
+                <p className="text-[11px] text-slate-300">Pindahan Bank, QR DuitNow, Cek</p>
+              </div>
+            </div>
+
+            <div className="text-right">
+              <span className="text-[10px] uppercase text-slate-400 font-bold block">Baki Semasa Bank</span>
+              <span className="text-xl font-extrabold font-mono text-emerald-300">{formatRM(summary.bankBalance)}</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 mt-4 pt-1 text-center text-xs">
+            <div className="p-2 rounded-xl bg-slate-800/80 border border-slate-700">
+              <span className="text-[10px] text-slate-400 block font-medium">Baki Awal Bank</span>
+              <span className="font-bold font-mono text-slate-200 mt-0.5 block">{formatRM(summary.bakiBankTerdahulu)}</span>
+            </div>
+            <div className="p-2 rounded-xl bg-emerald-950/60 border border-emerald-800/50">
+              <span className="text-[10px] text-emerald-400 block font-bold">+ Duit Masuk</span>
+              <span className="font-bold font-mono text-emerald-300 mt-0.5 block">+{formatRM(summary.bankIncome)}</span>
+            </div>
+            <div className="p-2 rounded-xl bg-rose-950/60 border border-rose-800/50">
+              <span className="text-[10px] text-rose-400 block font-bold">- Duit Keluar</span>
+              <span className="font-bold font-mono text-rose-300 mt-0.5 block">-{formatRM(summary.bankExpense)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Peti Cash / Tunai Card */}
+        <div className="bg-gradient-to-br from-amber-950 via-slate-900 to-amber-900 text-white rounded-2xl p-5 shadow-md border border-amber-800/60 flex flex-col justify-between relative overflow-hidden">
+          <div className="flex items-center justify-between border-b border-amber-800/50 pb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2.5 rounded-xl bg-amber-900/80 text-amber-300 border border-amber-700/50">
+                <Banknote className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-white flex items-center gap-1.5">
+                  Duit Peti Cash / Tunai
+                  <span className="px-2 py-0.5 rounded-full bg-amber-800/80 text-amber-200 text-[10px] font-mono">Cash Box</span>
+                </h4>
+                <p className="text-[11px] text-amber-200/80">Kutipan Tabung Tunai & Tunai Tangan</p>
+              </div>
+            </div>
+
+            <div className="text-right">
+              <span className="text-[10px] uppercase text-amber-300/80 font-bold block">Baki Peti Cash</span>
+              <span className="text-xl font-extrabold font-mono text-amber-300">{formatRM(summary.cashBalance)}</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 mt-4 pt-1 text-center text-xs">
+            <div className="p-2 rounded-xl bg-slate-800/80 border border-slate-700">
+              <span className="text-[10px] text-slate-400 block font-medium">Baki Awal Tunai</span>
+              <span className="font-bold font-mono text-slate-200 mt-0.5 block">{formatRM(summary.bakiTunaiTerdahulu)}</span>
+            </div>
+            <div className="p-2 rounded-xl bg-emerald-950/60 border border-emerald-800/50">
+              <span className="text-[10px] text-emerald-400 block font-bold">+ Duit Masuk</span>
+              <span className="font-bold font-mono text-emerald-300 mt-0.5 block">+{formatRM(summary.cashIncome)}</span>
+            </div>
+            <div className="p-2 rounded-xl bg-rose-950/60 border border-rose-800/50">
+              <span className="text-[10px] text-rose-400 block font-bold">- Duit Keluar</span>
+              <span className="font-bold font-mono text-rose-300 mt-0.5 block">-{formatRM(summary.cashExpense)}</span>
+            </div>
           </div>
         </div>
       </div>

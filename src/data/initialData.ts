@@ -12,7 +12,9 @@ export const defaultSurauInfo: SurauInfo = {
   setiausahaName: 'Malik Bin Haji Matali',
   phone: '019-896 4810',
   email: 'kewangan@suraualjannah-pulasan3.org.my',
-  bakiTerdahulu: 0.00,
+  bakiTerdahulu: 5049.64,
+  bakiBankTerdahulu: 4438.64,
+  bakiTunaiTerdahulu: 611.00,
 };
 
 export const initialTransactions: Transaction[] = [];

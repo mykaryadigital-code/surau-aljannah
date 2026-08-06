@@ -130,24 +130,48 @@ export function generateNextReceiptNo(transactions: Transaction[]): string {
 
 export function calculateFinancialSummary(
   transactions: Transaction[],
-  bakiTerdahulu: number
+  bakiTerdahuluTotal: number,
+  bakiBankTerdahuluOpt?: number,
+  bakiTunaiTerdahuluOpt?: number
 ): FinancialSummary {
+  const bakiBankTerdahulu = bakiBankTerdahuluOpt !== undefined ? bakiBankTerdahuluOpt : (bakiTerdahuluTotal || 0);
+  const bakiTunaiTerdahulu = bakiTunaiTerdahuluOpt !== undefined ? bakiTunaiTerdahuluOpt : 0;
+  const bakiTerdahulu = bakiBankTerdahulu + bakiTunaiTerdahulu;
+
   let totalIncome = 0;
   let totalExpense = 0;
   let incomeCount = 0;
   let expenseCount = 0;
 
+  let bankIncome = 0;
+  let bankExpense = 0;
+  let cashIncome = 0;
+  let cashExpense = 0;
+
   transactions.forEach((t) => {
+    const isCash = t.paymentMethod === 'Tunai';
     if (t.type === 'IN') {
       totalIncome += t.amount;
       incomeCount++;
+      if (isCash) {
+        cashIncome += t.amount;
+      } else {
+        bankIncome += t.amount;
+      }
     } else {
       totalExpense += t.amount;
       expenseCount++;
+      if (isCash) {
+        cashExpense += t.amount;
+      } else {
+        bankExpense += t.amount;
+      }
     }
   });
 
-  const currentBalance = bakiTerdahulu + totalIncome - totalExpense;
+  const bankBalance = bakiBankTerdahulu + bankIncome - bankExpense;
+  const cashBalance = bakiTunaiTerdahulu + cashIncome - cashExpense;
+  const currentBalance = bankBalance + cashBalance;
   const netSurplus = totalIncome - totalExpense;
 
   let healthStatus: 'SIHAT' | 'SEDERHANA' | 'DEFISIT' = 'SIHAT';
@@ -159,6 +183,8 @@ export function calculateFinancialSummary(
 
   return {
     bakiTerdahulu,
+    bakiBankTerdahulu,
+    bakiTunaiTerdahulu,
     totalIncome,
     totalExpense,
     currentBalance,
@@ -166,5 +192,11 @@ export function calculateFinancialSummary(
     healthStatus,
     incomeCount,
     expenseCount,
+    bankIncome,
+    bankExpense,
+    bankBalance,
+    cashIncome,
+    cashExpense,
+    cashBalance,
   };
 }

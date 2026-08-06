@@ -115,10 +115,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
           </div>
 
-          {/* Section 2: Bank Info */}
+          {/* Section 2: Bank & Opening Balances */}
           <div className="space-y-3 pt-2">
             <h3 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] bg-slate-100 p-2 rounded">
-              2. Maklumat Akaun Bank
+              2. Maklumat Akaun Bank & Baki Awal
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -142,6 +142,52 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   onChange={(e) => setFormData({ ...formData, accountNo: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono font-bold"
                 />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Baki Awal Akaun Bank (RM)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.bakiBankTerdahulu ?? formData.bakiTerdahulu ?? 0}
+                  onChange={(e) => {
+                    const bankVal = parseFloat(e.target.value) || 0;
+                    const cashVal = formData.bakiTunaiTerdahulu || 0;
+                    setFormData({
+                      ...formData,
+                      bakiBankTerdahulu: bankVal,
+                      bakiTerdahulu: bankVal + cashVal,
+                    });
+                  }}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono font-bold text-emerald-800 bg-emerald-50/50"
+                  placeholder="0.00"
+                />
+                <p className="text-[10px] text-slate-500 mt-0.5">Jumlah duit baki awal dalam akaun bank surau.</p>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Baki Awal Peti Cash / Tunai (RM)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.bakiTunaiTerdahulu ?? 0}
+                  onChange={(e) => {
+                    const cashVal = parseFloat(e.target.value) || 0;
+                    const bankVal = formData.bakiBankTerdahulu ?? formData.bakiTerdahulu ?? 0;
+                    setFormData({
+                      ...formData,
+                      bakiTunaiTerdahulu: cashVal,
+                      bakiTerdahulu: bankVal + cashVal,
+                    });
+                  }}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 font-mono font-bold text-amber-800 bg-amber-50/50"
+                  placeholder="0.00"
+                />
+                <p className="text-[10px] text-slate-500 mt-0.5">Jumlah duit baki awal tunai dalam peti besi/cash box surau.</p>
               </div>
             </div>
           </div>

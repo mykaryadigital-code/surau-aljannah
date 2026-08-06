@@ -43,12 +43,22 @@ export default function App() {
           ? defaultSurauInfo.setiausahaName 
           : parsed.setiausahaName;
 
+        const bakiBank = (parsed.bakiBankTerdahulu !== undefined && parsed.bakiBankTerdahulu !== 0) 
+          ? parsed.bakiBankTerdahulu 
+          : defaultSurauInfo.bakiBankTerdahulu;
+        const bakiTunai = (parsed.bakiTunaiTerdahulu !== undefined && parsed.bakiTunaiTerdahulu !== 0) 
+          ? parsed.bakiTunaiTerdahulu 
+          : defaultSurauInfo.bakiTunaiTerdahulu;
+
         return {
           ...defaultSurauInfo,
           ...parsed,
           pengerusiName: pengerusi,
           bendahariName: bendahari,
           setiausahaName: setiausaha,
+          bakiBankTerdahulu: bakiBank,
+          bakiTunaiTerdahulu: bakiTunai,
+          bakiTerdahulu: bakiBank + bakiTunai,
         };
       } catch (e) {
         console.error('Failed to parse saved surau info:', e);
@@ -142,8 +152,13 @@ export default function App() {
 
   // Financial Summary
   const summary = useMemo(() => {
-    return calculateFinancialSummary(transactions, surauInfo.bakiTerdahulu);
-  }, [transactions, surauInfo.bakiTerdahulu]);
+    return calculateFinancialSummary(
+      transactions, 
+      surauInfo.bakiTerdahulu, 
+      surauInfo.bakiBankTerdahulu, 
+      surauInfo.bakiTunaiTerdahulu
+    );
+  }, [transactions, surauInfo.bakiTerdahulu, surauInfo.bakiBankTerdahulu, surauInfo.bakiTunaiTerdahulu]);
 
   // Handlers
   const handleSaveTransaction = (

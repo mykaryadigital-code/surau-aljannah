@@ -52,6 +52,11 @@ export const MonthlyReportView: React.FC<MonthlyReportViewProps> = ({
   const totalOut = monthTransactions.filter((t) => t.type === 'OUT').reduce((acc, t) => acc + t.amount, 0);
   const closingBalance = openingBalanceForMonth + totalIn - totalOut;
 
+  const monthBankIn = monthTransactions.filter((t) => t.type === 'IN' && t.paymentMethod !== 'Tunai').reduce((acc, t) => acc + t.amount, 0);
+  const monthBankOut = monthTransactions.filter((t) => t.type === 'OUT' && t.paymentMethod !== 'Tunai').reduce((acc, t) => acc + t.amount, 0);
+  const monthCashIn = monthTransactions.filter((t) => t.type === 'IN' && t.paymentMethod === 'Tunai').reduce((acc, t) => acc + t.amount, 0);
+  const monthCashOut = monthTransactions.filter((t) => t.type === 'OUT' && t.paymentMethod === 'Tunai').reduce((acc, t) => acc + t.amount, 0);
+
   // Inflow breakdown by Category
   const categoryInBreakdown = useMemo(() => {
     const map: Record<string, number> = {};
@@ -142,7 +147,7 @@ export const MonthlyReportView: React.FC<MonthlyReportViewProps> = ({
         {/* Section 1: Summary Overview */}
         <div className="space-y-3">
           <h3 className="font-bold text-xs uppercase tracking-wider text-slate-700 bg-slate-100 p-2 rounded-lg border-l-4 border-emerald-800">
-            1. Ringkasan Kedudukan Kewangan (Buku Tunai)
+            1. Ringkasan Kedudukan Kewangan & Pecahan Saluran
           </h3>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
@@ -164,6 +169,29 @@ export const MonthlyReportView: React.FC<MonthlyReportViewProps> = ({
             <div className="p-3 bg-emerald-950 text-white rounded-xl border border-emerald-800">
               <span className="text-emerald-300 font-medium">= Baki Akhir Bulan:</span>
               <p className="text-base font-extrabold font-mono text-amber-300 mt-0.5">{formatRM(closingBalance)}</p>
+            </div>
+          </div>
+
+          {/* Bank vs Peti Cash Breakdown */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 text-xs">
+            <div className="p-3 rounded-xl bg-slate-900 text-white border border-slate-800 flex justify-between items-center">
+              <div>
+                <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">🏦 Akaun Bank Surau ({surauInfo.bankName})</span>
+                <span className="text-[11px] text-slate-300">Masuk: <strong className="text-emerald-300">+{formatRM(monthBankIn)}</strong> | Keluar: <strong className="text-rose-300">-{formatRM(monthBankOut)}</strong></span>
+              </div>
+              <span className="text-sm font-extrabold font-mono text-emerald-300">
+                Net: {formatRM(monthBankIn - monthBankOut)}
+              </span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-amber-950 text-white border border-amber-900 flex justify-between items-center">
+              <div>
+                <span className="text-[10px] text-amber-300 font-bold uppercase tracking-wider block">💵 Peti Cash / Tunai Surau</span>
+                <span className="text-[11px] text-amber-200/80">Masuk: <strong className="text-emerald-300">+{formatRM(monthCashIn)}</strong> | Keluar: <strong className="text-rose-300">-{formatRM(monthCashOut)}</strong></span>
+              </div>
+              <span className="text-sm font-extrabold font-mono text-amber-300">
+                Net: {formatRM(monthCashIn - monthCashOut)}
+              </span>
             </div>
           </div>
         </div>

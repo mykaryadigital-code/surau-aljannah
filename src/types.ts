@@ -64,11 +64,15 @@ export interface SurauInfo {
   setiausahaName: string;
   phone: string;
   email: string;
-  bakiTerdahulu: number; // Opening balance before records
+  bakiTerdahulu: number; // Opening balance total
+  bakiBankTerdahulu?: number; // Opening balance for Bank
+  bakiTunaiTerdahulu?: number; // Opening balance for Peti Cash / Tunai
 }
 
 export interface FinancialSummary {
   bakiTerdahulu: number;
+  bakiBankTerdahulu: number;
+  bakiTunaiTerdahulu: number;
   totalIncome: number;
   totalExpense: number;
   currentBalance: number;
@@ -76,4 +80,11 @@ export interface FinancialSummary {
   healthStatus: 'SIHAT' | 'SEDERHANA' | 'DEFISIT';
   incomeCount: number;
   expenseCount: number;
+  // Account & Cash breakdown
+  bankIncome: number;
+  bankExpense: number;
+  bankBalance: number;
+  cashIncome: number;
+  cashExpense: number;
+  cashBalance: number;
 }
