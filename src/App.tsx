@@ -166,14 +166,25 @@ export default function App() {
 
     // Real-time listener for Transactions
     const unsubTx = subscribeToTransactions((cloudTxs) => {
-      if (cloudTxs) {
+      if (cloudTxs && cloudTxs.length > 0) {
         setTransactions(cloudTxs);
+      } else if (cloudTxs && cloudTxs.length === 0) {
+        setTransactions((prevLocal) => {
+          if (prevLocal && prevLocal.length > 0) {
+            // Push local transactions up to Cloud if Cloud is empty
+            importAllToCloud(surauInfo, prevLocal).catch((err) =>
+              console.error('Failed to sync local data to cloud:', err)
+            );
+            return prevLocal;
+          }
+          return [];
+        });
       }
     });
 
     // Real-time listener for Surau Info
     const unsubInfo = subscribeToSurauInfo((cloudInfo) => {
-      if (cloudInfo) {
+      if (cloudInfo && cloudInfo.name) {
         setSurauInfo(cloudInfo);
       }
     });

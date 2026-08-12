@@ -20,6 +20,18 @@ export const db = (databaseId && databaseId !== '(default)')
   ? getFirestore(app, databaseId)
   : getFirestore(app);
 
+// Helper to strip undefined values so Firestore setDoc does not throw errors
+function cleanForFirestore<T extends Record<string, any>>(obj: T): Record<string, any> {
+  const result: Record<string, any> = {};
+  Object.keys(obj).forEach((key) => {
+    const val = obj[key];
+    if (val !== undefined) {
+      result[key] = val;
+    }
+  });
+  return result;
+}
+
 // Subscribe to Transactions real-time
 export function subscribeToTransactions(
   onData: (data: Transaction[]) => void,
@@ -74,7 +86,8 @@ export function subscribeToSurauInfo(
 export async function saveTransactionToCloud(transaction: Transaction): Promise<void> {
   try {
     const docRef = doc(db, 'transactions', transaction.id);
-    await setDoc(docRef, transaction, { merge: true });
+    const cleaned = cleanForFirestore(transaction);
+    await setDoc(docRef, cleaned, { merge: true });
   } catch (err) {
     console.error('Error saving transaction to cloud:', err);
     throw err;
@@ -96,7 +109,8 @@ export async function deleteTransactionFromCloud(id: string): Promise<void> {
 export async function saveSurauInfoToCloud(surauInfo: SurauInfo): Promise<void> {
   try {
     const infoDocRef = doc(db, 'surau_settings', 'info');
-    await setDoc(infoDocRef, surauInfo, { merge: true });
+    const cleaned = cleanForFirestore(surauInfo);
+    await setDoc(infoDocRef, cleaned, { merge: true });
   } catch (err) {
     console.error('Error saving surau info to cloud:', err);
     throw err;
@@ -112,20 +126,22 @@ export async function seedInitialCloudData(
     // Check info
     const infoDocRef = doc(db, 'surau_settings', 'info');
     const infoSnap = await getDoc(infoDocRef);
-    if (!infoSnap.exists()) {
-      await setDoc(infoDocRef, localInfo);
+    if (!infoSnap.exists() && localInfo) {
+      await setDoc(infoDocRef, cleanForFirestore(localInfo));
     }
 
     // Check transactions
-    const txCol = collection(db, 'transactions');
-    const txSnap = await getDocs(txCol);
-    if (txSnap.empty && localTransactions.length > 0) {
-      const batch = writeBatch(db);
-      localTransactions.forEach((t) => {
-        const ref = doc(db, 'transactions', t.id);
-        batch.set(ref, t);
-      });
-      await batch.commit();
+    if (localTransactions && localTransactions.length > 0) {
+      const txCol = collection(db, 'transactions');
+      const txSnap = await getDocs(txCol);
+      if (txSnap.empty) {
+        const batch = writeBatch(db);
+        localTransactions.forEach((t) => {
+          const ref = doc(db, 'transactions', t.id);
+          batch.set(ref, cleanForFirestore(t));
+        });
+        await batch.commit();
+      }
     }
   } catch (err) {
     console.error('Error seeding initial data to cloud:', err);
@@ -139,11 +155,11 @@ export async function importAllToCloud(
 ): Promise<void> {
   try {
     await saveSurauInfoToCloud(surauInfo);
-    if (transactions.length > 0) {
+    if (transactions && transactions.length > 0) {
       const batch = writeBatch(db);
       transactions.forEach((t) => {
         const ref = doc(db, 'transactions', t.id);
-        batch.set(ref, t);
+        batch.set(ref, cleanForFirestore(t));
       });
       await batch.commit();
     }
