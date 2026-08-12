@@ -1,0 +1,57 @@
+{
+  "entities": [
+    {
+      "name": "surauInfo",
+      "collectionName": "surau_settings",
+      "description": "Maklumat Surau, senarai jawatankuasa dan baki awal kewangan",
+      "fields": [
+        { "name": "name", "type": "string", "required": true },
+        { "name": "address", "type": "string", "required": false },
+        { "name": "registrationNo", "type": "string", "required": false },
+        { "name": "bankName", "type": "string", "required": false },
+        { "name": "accountNo", "type": "string", "required": false },
+        { "name": "pengerusiName", "type": "string", "required": false },
+        { "name": "bendahariName", "type": "string", "required": false },
+        { "name": "setiausahaName", "type": "string", "required": false },
+        { "name": "phone", "type": "string", "required": false },
+        { "name": "email", "type": "string", "required": false },
+        { "name": "bakiTerdahulu", "type": "number", "required": false },
+        { "name": "bakiBankTerdahulu", "type": "number", "required": false },
+        { "name": "bakiTunaiTerdahulu", "type": "number", "required": false }
+      ]
+    },
+    {
+      "name": "transaction",
+      "collectionName": "transactions",
+      "description": "Transaksi penerimaan dan perbelanjaan kewangan Surau",
+      "fields": [
+        { "name": "id", "type": "string", "required": true },
+        { "name": "date", "type": "string", "required": true },
+        { "name": "type", "type": "string", "required": true },
+        { "name": "fundCategory", "type": "string", "required": true },
+        { "name": "category", "type": "string", "required": true },
+        { "name": "amount", "type": "number", "required": true },
+        { "name": "paymentMethod", "type": "string", "required": true },
+        { "name": "description", "type": "string", "required": true },
+        { "name": "referenceNo", "type": "string", "required": false },
+        { "name": "payerPayee", "type": "string", "required": false },
+        { "name": "auditStatus", "type": "string", "required": false },
+        { "name": "auditorNotes", "type": "string", "required": false },
+        { "name": "receiptNo", "type": "string", "required": false },
+        { "name": "attachmentUrl", "type": "string", "required": false },
+        { "name": "createdAt", "type": "string", "required": true },
+        { "name": "updatedAt", "type": "string", "required": true }
+      ]
+    }
+  ],
+  "securityRulesIntent": [
+    {
+      "collection": "surau_settings",
+      "rules": "Public read and write access"
+    },
+    {
+      "collection": "transactions",
+      "rules": "Public read and write access"
+    }
+  ]
+}

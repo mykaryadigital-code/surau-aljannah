@@ -2,6 +2,15 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Transaction, SurauInfo } from './types';
 import { defaultSurauInfo, initialTransactions } from './data/initialData';
 import { calculateFinancialSummary } from './utils/formatters';
+import { 
+  subscribeToTransactions, 
+  subscribeToSurauInfo, 
+  saveTransactionToCloud, 
+  deleteTransactionFromCloud, 
+  saveSurauInfoToCloud, 
+  seedInitialCloudData, 
+  importAllToCloud 
+} from './lib/firebaseService';
 
 import { Header } from './components/Header';
 import { FinancialSummaryCards } from './components/FinancialSummaryCards';
@@ -141,7 +150,7 @@ export default function App() {
     setIsSettingsOpen(true);
   };
 
-  // Sync state to localStorage
+  // Sync state to localStorage cache
   useEffect(() => {
     localStorage.setItem(SURAU_INFO_KEY, JSON.stringify(surauInfo));
   }, [surauInfo]);
@@ -149,6 +158,31 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(transactions));
   }, [transactions]);
+
+  // Real-time Cloud Firestore Subscriptions (Phone <-> PC Sync)
+  useEffect(() => {
+    // Seed initial local data to cloud if cloud database is empty
+    seedInitialCloudData(surauInfo, transactions);
+
+    // Real-time listener for Transactions
+    const unsubTx = subscribeToTransactions((cloudTxs) => {
+      if (cloudTxs) {
+        setTransactions(cloudTxs);
+      }
+    });
+
+    // Real-time listener for Surau Info
+    const unsubInfo = subscribeToSurauInfo((cloudInfo) => {
+      if (cloudInfo) {
+        setSurauInfo(cloudInfo);
+      }
+    });
+
+    return () => {
+      unsubTx();
+      unsubInfo();
+    };
+  }, []);
 
   // Financial Summary
   const summary = useMemo(() => {
@@ -161,55 +195,79 @@ export default function App() {
   }, [transactions, surauInfo.bakiTerdahulu, surauInfo.bakiBankTerdahulu, surauInfo.bakiTunaiTerdahulu]);
 
   // Handlers
-  const handleSaveTransaction = (
+  const handleSaveTransaction = async (
     data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>
   ) => {
     const now = new Date().toISOString();
+    let txToSave: Transaction;
 
     if (editingTransaction) {
-      // Update existing
-      setTransactions((prev) =>
-        prev.map((t) =>
-          t.id === editingTransaction.id
-            ? { ...t, ...data, updatedAt: now }
-            : t
-        )
-      );
+      txToSave = { ...editingTransaction, ...data, updatedAt: now };
     } else {
-      // Create new
-      const newTransaction: Transaction = {
+      txToSave = {
         ...data,
         id: `tx-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         createdAt: now,
         updatedAt: now,
       };
-      setTransactions((prev) => [newTransaction, ...prev]);
-
-      // If incoming money, ask to print receipt
       if (data.type === 'IN') {
-        setReceiptToPrint(newTransaction);
+        setReceiptToPrint(txToSave);
       }
     }
-    setEditingTransaction(null);
-  };
 
-  const handleDeleteTransaction = (id: string) => {
-    setTransactions((prev) => prev.filter((t) => t.id !== id));
-  };
-
-  const handleVerifyAudit = (id: string, notes?: string) => {
+    // Optimistic local update
     setTransactions((prev) =>
-      prev.map((t) =>
-        t.id === id
-          ? {
-              ...t,
-              auditStatus: 'DISAHKAN',
-              auditorNotes: notes || 'Disahkan oleh Pemeriksa Kira-kira Surau Al Jannah',
-              updatedAt: new Date().toISOString(),
-            }
-          : t
-      )
+      editingTransaction
+        ? prev.map((t) => (t.id === txToSave.id ? txToSave : t))
+        : [txToSave, ...prev]
     );
+    setEditingTransaction(null);
+
+    // Save to Cloud Firestore
+    try {
+      await saveTransactionToCloud(txToSave);
+    } catch (err) {
+      console.error('Failed to sync transaction to Cloud:', err);
+    }
+  };
+
+  const handleDeleteTransaction = async (id: string) => {
+    setTransactions((prev) => prev.filter((t) => t.id !== id));
+    try {
+      await deleteTransactionFromCloud(id);
+    } catch (err) {
+      console.error('Failed to delete transaction from Cloud:', err);
+    }
+  };
+
+  const handleVerifyAudit = async (id: string, notes?: string) => {
+    const updatedNow = new Date().toISOString();
+    const target = transactions.find((t) => t.id === id);
+    if (!target) return;
+
+    const updatedTx: Transaction = {
+      ...target,
+      auditStatus: 'DISAHKAN',
+      auditorNotes: notes || 'Disahkan oleh Pemeriksa Kira-kira Surau Al Jannah',
+      updatedAt: updatedNow,
+    };
+
+    setTransactions((prev) => prev.map((t) => (t.id === id ? updatedTx : t)));
+
+    try {
+      await saveTransactionToCloud(updatedTx);
+    } catch (err) {
+      console.error('Failed to sync audit to Cloud:', err);
+    }
+  };
+
+  const handleSaveSurauInfo = async (newInfo: SurauInfo) => {
+    setSurauInfo(newInfo);
+    try {
+      await saveSurauInfoToCloud(newInfo);
+    } catch (err) {
+      console.error('Failed to sync surauInfo to Cloud:', err);
+    }
   };
 
   const handleExportData = () => {
@@ -238,13 +296,15 @@ export default function App() {
     const fileReader = new FileReader();
     if (e.target.files && e.target.files[0]) {
       fileReader.readAsText(e.target.files[0], 'UTF-8');
-      fileReader.onload = (event) => {
+      fileReader.onload = async (event) => {
         try {
           const parsed = JSON.parse(event.target?.result as string);
           if (parsed.transactions && Array.isArray(parsed.transactions)) {
             setTransactions(parsed.transactions);
+            const importedInfo = parsed.surauInfo || surauInfo;
             if (parsed.surauInfo) setSurauInfo(parsed.surauInfo);
-            alert('Data kewangan berjaya diimport!');
+            await importAllToCloud(importedInfo, parsed.transactions);
+            alert('Data kewangan berjaya diimport dan disegerakkan ke Awan!');
           } else {
             alert('Format fail JSON tidak sah.');
           }
@@ -391,7 +451,7 @@ export default function App() {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         surauInfo={surauInfo}
-        onSaveSurauInfo={setSurauInfo}
+        onSaveSurauInfo={handleSaveSurauInfo}
       />
 
       <GoogleSheetsModal
