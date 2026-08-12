@@ -110,22 +110,51 @@ export function numberToMalayWords(amount: number): string {
   return `${ringgitText} Sahaja`;
 }
 
-export function generateNextReceiptNo(transactions: Transaction[]): string {
-  const currentYearMonth = new Date().toISOString().slice(0, 7).replace('-', '');
-  
-  // Find transactions with receiptNo starting with SAJ-
-  const matchingResits = transactions
-    .filter(t => t.type === 'IN' && t.receiptNo.startsWith(`SAJ-${currentYearMonth}`))
-    .map(t => {
+export function generateNextRefNo(
+  transactions: Transaction[],
+  type: 'IN' | 'OUT' = 'IN',
+  targetDate?: string
+): string {
+  const dateObj = targetDate ? new Date(targetDate) : new Date();
+  const validDate = isNaN(dateObj.getTime()) ? new Date() : dateObj;
+  const yearMonth = validDate.toISOString().slice(0, 7).replace('-', '');
+
+  const prefix = type === 'IN' ? 'SAJ' : 'INV';
+
+  // Find transactions matching prefix and yearMonth
+  const sequences = transactions
+    .filter((t) => {
+      if (!t.receiptNo) return false;
+      const startPattern = `${prefix}-${yearMonth}`;
+      return t.receiptNo.startsWith(startPattern);
+    })
+    .map((t) => {
       const parts = t.receiptNo.split('-');
-      const seq = parseInt(parts[parts.length - 1], 10);
+      const lastPart = parts[parts.length - 1];
+      const seq = parseInt(lastPart, 10);
       return isNaN(seq) ? 0 : seq;
     });
 
-  const nextSeq = matchingResits.length > 0 ? Math.max(...matchingResits) + 1 : 1;
+  let nextSeq = 1;
+  if (sequences.length > 0) {
+    nextSeq = Math.max(...sequences) + 1;
+  } else {
+    // Fallback: check count of transactions of same type in that yearMonth
+    const sameMonthCount = transactions.filter((t) => {
+      const tType = t.type || 'IN';
+      if (tType !== type) return false;
+      const tYM = t.date ? t.date.slice(0, 7).replace('-', '') : '';
+      return tYM === yearMonth;
+    }).length;
+    nextSeq = sameMonthCount + 1;
+  }
+
   const seqPadded = String(nextSeq).padStart(4, '0');
-  
-  return `SAJ-${currentYearMonth}-${seqPadded}`;
+  return `${prefix}-${yearMonth}-${seqPadded}`;
+}
+
+export function generateNextReceiptNo(transactions: Transaction[]): string {
+  return generateNextRefNo(transactions, 'IN');
 }
 
 export function calculateFinancialSummary(

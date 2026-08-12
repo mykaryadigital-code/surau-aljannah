@@ -7,7 +7,7 @@ import {
   FundCategory, 
   PaymentMethod 
 } from '../types';
-import { generateNextReceiptNo } from '../utils/formatters';
+import { generateNextRefNo } from '../utils/formatters';
 import { 
   X, 
   ArrowDownLeft, 
@@ -22,7 +22,8 @@ import {
   Upload, 
   Paperclip, 
   Check, 
-  AlertCircle
+  AlertCircle,
+  RotateCw
 } from 'lucide-react';
 
 interface TransactionFormModalProps {
@@ -108,7 +109,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
       setAttachmentName(initialData.attachmentName || '');
     } else {
       // Default reset
-      const startType = initialType || 'IN';
+      const startType = (initialType || 'IN') as TransactionType;
       const newDate = new Date().toISOString().slice(0, 10);
       setDate(newDate);
       setType(startType);
@@ -120,11 +121,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
       setDescription('');
       setAttachmentUrl('');
       setAttachmentName('');
-      if (startType === 'IN') {
-        setReceiptNo(generateNextReceiptNo(existingTransactions));
-      } else {
-        setReceiptNo(`INV-${new Date().toISOString().slice(0, 7).replace('-', '')}-001`);
-      }
+      setReceiptNo(generateNextRefNo(existingTransactions, startType, newDate));
     }
     setErrorMsg('');
   }, [isOpen, initialData, initialType, existingTransactions]);
@@ -134,15 +131,25 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
     setType(newType);
     if (newType === 'IN') {
       setCategory(CATEGORIES_IN[0]);
-      if (!initialData) {
-        setReceiptNo(generateNextReceiptNo(existingTransactions));
-      }
     } else {
       setCategory(CATEGORIES_OUT[0]);
-      if (!initialData) {
-        setReceiptNo(`INV-${new Date().toISOString().slice(0, 7).replace('-', '')}-001`);
-      }
     }
+    if (!initialData) {
+      setReceiptNo(generateNextRefNo(existingTransactions, newType, date));
+    }
+  };
+
+  // When date changes
+  const handleDateChange = (newDate: string) => {
+    setDate(newDate);
+    if (!initialData) {
+      setReceiptNo(generateNextRefNo(existingTransactions, type, newDate));
+    }
+  };
+
+  // Manual trigger auto regenerate
+  const handleRegenerateRefNo = () => {
+    setReceiptNo(generateNextRefNo(existingTransactions, type, date));
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -183,7 +190,7 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
     onSave({
       type,
       date,
-      receiptNo: receiptNo.trim() || generateNextReceiptNo(existingTransactions),
+      receiptNo: receiptNo.trim() || generateNextRefNo(existingTransactions, type, date),
       category: category as any,
       fundCategory,
       amount: numAmount,
@@ -331,26 +338,39 @@ export const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
                 type="date"
                 required
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={(e) => handleDateChange(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
-                <Hash className="w-3.5 h-3.5 text-emerald-600" />
-                No. Rujukan Resit / Invois *
-              </label>
-              <input
-                type="text"
-                required
-                value={receiptNo}
-                onChange={(e) => setReceiptNo(e.target.value)}
-                placeholder={type === 'IN' ? 'SAJ-202608-0001' : 'INV-SESB-98124'}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm font-mono font-medium"
-              />
-              <span className="text-[11px] text-slate-400 mt-0.5 block">
-                {type === 'IN' ? 'Nombor siri resit rasmi auto-jana' : 'Nombor rujukan bil/invois pembekal'}
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <Hash className="w-3.5 h-3.5 text-emerald-600" />
+                  No. Rujukan Resit / Invois *
+                </label>
+                <button
+                  type="button"
+                  onClick={handleRegenerateRefNo}
+                  className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-lg border border-emerald-200 transition"
+                  title="Jana semula nombor rujukan berurutan seterusnya"
+                >
+                  <RotateCw className="w-3 h-3" />
+                  Auto-Jana
+                </button>
+              </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  required
+                  value={receiptNo}
+                  onChange={(e) => setReceiptNo(e.target.value)}
+                  placeholder={type === 'IN' ? 'SAJ-202608-0001' : 'INV-202608-0001'}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm font-mono font-bold text-slate-800 bg-slate-50/50"
+                />
+              </div>
+              <span className="text-[11px] text-slate-500 mt-1 block">
+                ✨ Berubah secara automatik (Auto-increment: <strong className="font-mono">{type === 'IN' ? 'SAJ-YYYYMM-XXXX' : 'INV-YYYYMM-XXXX'}</strong>)
               </span>
             </div>
           </div>
