@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SurauInfo } from '../types';
-import { X, Building2, Save, RefreshCw, Landmark, Phone, Mail, User, Shield } from 'lucide-react';
+import { THEME_OPTIONS, ThemeColor } from '../utils/theme';
+import { X, Building2, Save, RefreshCw, Landmark, Phone, Mail, User, Shield, Palette, Check } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -231,6 +232,52 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 font-medium"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Section 4: Theme Selector */}
+          <div className="space-y-3 pt-2">
+            <h3 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] bg-slate-100 p-2 rounded flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Palette className="w-3.5 h-3.5 text-emerald-700" />
+                4. Pilihan Skim Warna Utama (App Theme)
+              </span>
+              <span className="text-[10px] text-slate-500 font-normal normal-case">Pilih penampilan visual aplikasi</span>
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {THEME_OPTIONS.map((opt) => {
+                const isSelected = (formData.theme || 'emerald') === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, theme: opt.id })}
+                    className={`p-3 rounded-xl border text-left transition relative flex items-center gap-3 cursor-pointer ${
+                      isSelected
+                        ? 'border-emerald-600 bg-emerald-50/70 shadow-sm ring-2 ring-emerald-500/30'
+                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${opt.previewBg} text-white font-bold text-base shadow-sm shrink-0`}>
+                      <span>{opt.icon}</span>
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-slate-900 text-xs">{opt.name}</span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 line-clamp-1">{opt.subtitle}</p>
+                    </div>
+
+                    {isSelected && (
+                      <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

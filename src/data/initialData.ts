@@ -15,6 +15,7 @@ export const defaultSurauInfo: SurauInfo = {
   bakiTerdahulu: 5049.64,
   bakiBankTerdahulu: 4438.64,
   bakiTunaiTerdahulu: 611.00,
+  theme: 'emerald',
 };
 
 export const initialTransactions: Transaction[] = [];

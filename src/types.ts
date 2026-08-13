@@ -1,3 +1,5 @@
+import { ThemeColor } from './utils/theme';
+
 export type TransactionType = 'IN' | 'OUT'; // IN = Duit Masuk, OUT = Duit Keluar
 
 export type MainCategoryIn = 
@@ -67,6 +69,7 @@ export interface SurauInfo {
   bakiTerdahulu: number; // Opening balance total
   bakiBankTerdahulu?: number; // Opening balance for Bank
   bakiTunaiTerdahulu?: number; // Opening balance for Peti Cash / Tunai
+  theme?: ThemeColor;
 }
 
 export interface FinancialSummary {
